@@ -1,13 +1,12 @@
 LOWERBOUND, EXACT, UPPERBOUND = -1, 0, 1
 inf = float("infinity")
 
-def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
 
+def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
     alphaOrig = alpha
     lookup = None if (tt is None) else tt.lookup(game)
 
     if lookup is not None:
-
         if lookup["depth"] >= depth:
             flag, value = lookup["flag"], lookup["value"]
             if flag == EXACT:
@@ -33,7 +32,6 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
         possible_moves = [lookup["move"]] + possible_moves
 
     else:
-
         possible_moves = game.possible_moves()
 
     state = game
@@ -45,7 +43,6 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
     unmake_move = hasattr(state, "unmake_move")
 
     for move in possible_moves:
-
         if not unmake_move:
             game = state.copy()
 
@@ -70,7 +67,6 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
                 break
 
     if tt is not None:
-
         assert best_move in possible_moves
         tt.store(
             game=state,
@@ -84,8 +80,8 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
 
     return bestValue
 
-class Negamax:
 
+class Negamax:
     def __init__(self, depth, scoring=None, win_score=+inf, tt=None):
         self.scoring = scoring
         self.depth = depth
@@ -111,4 +107,3 @@ class Negamax:
             self.tt,
         )
         return game.ai_move
-    

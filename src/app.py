@@ -1,16 +1,19 @@
-from flask import Flask, render_template
-from tic_tac_toe_game.player import HumanPlayer, AIPlayer
-from tic_tac_toe_game.tic_tac_toe import TicTacToe
+from flask import Flask, make_response, render_template, request
+
 from tic_tac_toe_game.ai.negamax import Negamax
-from flask import Flask, render_template, request, make_response
+from tic_tac_toe_game.player import AIPlayer, HumanPlayer
+from tic_tac_toe_game.tic_tac_toe import TicTacToe
 
 app = Flask(__name__)
 
-@app.route('/')
+
+@app.route("/")
 def home():
-    return render_template('index.html')
+    return render_template("index.html")
+
 
 ai_algo = Negamax(2)
+
 
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
@@ -29,11 +32,11 @@ def play_game():
         msg = game.winner()
     else:
         msg = "play move"
-    resp = make_response(render_template('game.html', game=game, msg=msg))
+    resp = make_response(render_template("game.html", game=game, msg=msg))
     c = ",".join(map(str, game.board))
     resp.set_cookie("game_board", c)
     return resp
 
+
 def run_web_app():
-    app.run(debug=True, host='0.0.0.0')
-    
+    app.run(debug=True, host="0.0.0.0")

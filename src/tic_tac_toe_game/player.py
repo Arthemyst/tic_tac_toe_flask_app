@@ -1,10 +1,4 @@
 class HumanPlayer:
-    """
-    Class for a human player, which gets asked by text what moves
-    she wants to play. She can type ``show moves`` to display a list of
-    moves, or ``quit`` to quit the game.
-    """
-
     def __init__(self, name="Human"):
         self.name = name
 
@@ -36,7 +30,7 @@ class HumanPlayer:
                 # Transform the move into its real type (integer, etc. and return).
                 move = possible_moves[possible_moves_str.index(str(move))]
                 return move
-            
+
 
 class AIPlayer:
     """
@@ -51,4 +45,3 @@ class AIPlayer:
 
     def ask_move(self, game):
         return self.AI_algo(game)
-    

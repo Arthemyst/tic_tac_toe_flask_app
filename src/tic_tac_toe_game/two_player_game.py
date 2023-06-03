@@ -16,14 +16,12 @@ class TwoPlayerGame(ABC):
         pass
 
     def play(self, nmoves=1000, verbose=True):
-
         history = []
 
         if verbose:
             self.show()
 
         for self.nmove in range(1, nmoves + 1):
-
             if self.is_over():
                 break
 
@@ -69,4 +67,3 @@ class TwoPlayerGame(ABC):
         result = self.make_move(move)
         self.switch_player()
         return result
-    

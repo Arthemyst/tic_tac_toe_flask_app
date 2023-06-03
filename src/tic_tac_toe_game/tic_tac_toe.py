@@ -1,8 +1,9 @@
 from tic_tac_toe_game.two_player_game import TwoPlayerGame
 from typing import List
 from tic_tac_toe_game.constants import WIN_LINES
-class TicTacToe(TwoPlayerGame):
 
+
+class TicTacToe(TwoPlayerGame):
     def __init__(self, players):
         self.players: List = players
         self.board: List = [0 for i in range(9)]
@@ -18,7 +19,6 @@ class TicTacToe(TwoPlayerGame):
         self.board[int(move) - 1] = 0
 
     def lose(self, who=None):
-        """ Has the opponent "three in line ?" """
         if who is None:
             who = self.opponent_index
         wins = [all([(self.board[c - 1] == who) for c in line]) for line in WIN_LINES]
@@ -58,4 +58,3 @@ class TicTacToe(TwoPlayerGame):
         if self.lose(who=2):
             return "AI Wins"
         return "Tie"
-    
