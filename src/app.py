@@ -4,29 +4,46 @@ from tic_tac_toe_game.player import AIPlayer, HumanPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
 from flask_sqlalchemy import SQLAlchemy
 from config import CustomEnvironment
-
+from datetime import date
 database_ip = CustomEnvironment.get_database_ip()
 database_name = CustomEnvironment.get_database_name()
 database_password = CustomEnvironment.get_database_password()
 database_user = CustomEnvironment.get_database_user()
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{database_user}:{database_password}@{database_ip}:5432/{database_name}'
 app.secret_key = CustomEnvironment.get_secret_key()
 db = SQLAlchemy(app)
+ai_algo = Negamax(2)
 
 class User(db.Model):
     __tablename__ = 'users'
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    login_dates = db.relationship('LoginDate', backref='user', lazy=True)
+
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+
+class LoginDate(db.Model):
+    __tablename__ = 'logindates'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    login_date = db.Column(db.Date)
     credits = db.Column(db.Integer, default=10)
     wins = db.Column(db.Integer, default=0)
     loses = db.Column(db.Integer, default=0)
     ties = db.Column(db.Integer, default=0)
 
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+    def __init__(self, user_id, login_date):
+        self.user_id = user_id
+        self.login_date = login_date
+        self.credits = 10
+        self.wins = 0
+        self.loses = 0 
+        self.ties = 0
 
 @app.route("/")
 def home():
@@ -48,15 +65,25 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    session.clear()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        user.credits, user.wins, user.loses, user.ties = 10, 0, 0, 0
-        db.session.commit()
-        if user and user.password == password:
+        user = User.query.filter_by(username=username, password=password).first()
+        if user:
             session['username'] = request.form['username']
+
+
+            login_date_for_user = LoginDate.query.filter_by(user_id=user.id, login_date=date.today()).first()
+            if login_date_for_user:
+                login_date_for_user.credits = 10
+                db.session.commit()
+            else:
+                new_login_date = LoginDate(user_id=user.id, login_date=date.today())
+                db.session.add(new_login_date)
+                db.session.commit()
             return redirect(url_for('play_game'))
+
         else:
             return 'Invalid username or password!'
 
@@ -67,16 +94,24 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-ai_algo = Negamax(2)
-
 
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
+    check_if_game_is_over = True
+    if "stats" in request.form:
+        show_stats = True
+    else:
+        show_stats = False
+
+
     username = session.get("username")
     user = User.query.filter_by(username=username).first()
+    user_login_date = LoginDate.query.filter_by(user_id=user.id, login_date=date.today()).first()
+
     game = TicTacToe([HumanPlayer(), AIPlayer(ai_algo)])
     game_cookie = request.cookies.get("game_board")
     if game_cookie:
+        check_if_game_is_over = False
         game.board = [int(x) for x in game_cookie.split(",")]
     if "choice" in request.form:
         game.play_move(request.form["choice"])
@@ -84,12 +119,16 @@ def play_game():
             ai_move = game.get_move()
             game.play_move(ai_move)
     if "reset" in request.form:
-        if user.credits > 2:
-            user.credits -= 3
-        db.session.commit()
+        if user_login_date.credits > 2:
+            check_if_game_is_over = False
+            user_login_date.credits -= 3
+            db.session.commit()
+        else:
+            return redirect(url_for('logout'))
+
         game.board = [0 for i in range(9)]
     if "credits" in request.form:
-        user.credits = 10
+        user_login_date.credits = 10
         db.session.commit()
 
 
@@ -97,25 +136,35 @@ def play_game():
         msg = game.winner()
         game_msg = msg[0]
         points = msg[1]
-        user.credits += points
+        user_login_date.credits += points
         result = msg[2]
         if result == 0:
-            user.ties += 1
+            user_login_date.ties += 1
+            check_if_game_is_over = True
+            db.session.commit()
         elif result == 1:
-            user.loses += 1
+            user_login_date.loses += 1
+            check_if_game_is_over = True
+            db.session.commit()
         elif result == 2:
-            user.wins += 1
-        db.session.commit()
+            user_login_date.wins += 1
+            check_if_game_is_over = True
+            db.session.commit()
     else:
         game_msg = "play move"
-    if user.credits > 0 and user.credits < 3 and game.is_over():
-        return redirect(url_for('logout'))
+        check_if_game_is_over = False
     
-    user_wins = user.wins
-    user_loses = user.loses
-    user_ties = user.ties
-
-    response = make_response(render_template("game.html", game=game, msg=game_msg, user_credits=user.credits, user_wins=user_wins, user_loses=user_loses, user_ties=user_ties))
+    response = make_response(render_template(
+        "game.html", 
+        game=game, 
+        msg=game_msg, 
+        user_credits=user_login_date.credits, 
+        user_wins=user_login_date.wins, 
+        user_loses=user_login_date.loses, 
+        user_ties=user_login_date.ties, 
+        check_if_game_is_over=check_if_game_is_over, 
+        show_stats=show_stats
+        ))
     c = ",".join(map(str, game.board))
     response.set_cookie("game_board", c)
     return response

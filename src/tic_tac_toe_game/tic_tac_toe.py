@@ -9,7 +9,7 @@ class TicTacToe(TwoPlayerGame):
         self.board: List = [0 for i in range(9)]
         self.current_player: int = 1
 
-    def possible_moves(self):
+    def possible_moves(self) -> List:
         return [i + 1 for i, e in enumerate(self.board) if e == 0]
 
     def make_move(self, move):
@@ -18,20 +18,20 @@ class TicTacToe(TwoPlayerGame):
     def unmake_move(self, move):  # optional method (speeds up the AI)
         self.board[int(move) - 1] = 0
 
-    def lose(self, who=None):
+    def lose(self, who=None) -> bool:
         if who is None:
             who = self.opponent_index
         wins = [all([(self.board[c - 1] == who) for c in line]) for line in WIN_LINES]
         return any(wins)
 
-    def is_over(self):
+    def is_over(self) -> bool:
         return (
             (self.possible_moves() == [])
             or self.lose()
             or self.lose(who=self.current_player)
         )
 
-    def show(self):
+    def show(self) -> str:
         print(
             "\n"
             + "\n".join(
@@ -45,7 +45,7 @@ class TicTacToe(TwoPlayerGame):
     def spot_string(self, i, j):
         return ["_", "O", "X"][self.board[3 * j + i]]
 
-    def scoring(self):
+    def scoring(self) -> int:
         opp_won = self.lose()
         i_won = self.lose(who=self.current_player)
         if opp_won and not i_won:
@@ -54,7 +54,7 @@ class TicTacToe(TwoPlayerGame):
             return 100
         return 0
 
-    def winner(self):
+    def winner(self) -> tuple:
         if self.lose(who=2):
             return ("Computer wins!", 0, 1)
         if self.lose(who=1):

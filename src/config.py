@@ -6,6 +6,8 @@ class CustomEnvironment:
         DATABASE_PASSOWRD=(str, 'postgres'),
         DATABASE_USER=(str, 'postgres'),
         DATABASE_NAME=(str, 'postgres'),
+        INITIAL_CREDITS=(int, 10),
+        ADDITION_CREDITS=(int, 10),
     )
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -17,6 +19,8 @@ class CustomEnvironment:
     _database_password = env.str('DATABASE_PASSWORD')
     _database_user = env.str('DATABASE_USER')
     _database_name = env.str('DATABASE_NAME')
+    _initial_credits = env.int('INITIAL_CREDITS')
+    _addition_credits = env.int('ADDITION_CREDITS')
     
 
     @classmethod
@@ -39,4 +43,10 @@ class CustomEnvironment:
     def get_database_name(cls) -> str:
         return cls._database_name
     
-
+    @classmethod
+    def get_initial_credits(cls) -> int:
+        return cls._initial_credits
+    
+    @classmethod
+    def get_addition_credits(cls) -> int:
+        return cls._addition_credits

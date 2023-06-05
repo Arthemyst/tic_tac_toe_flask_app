@@ -3,6 +3,18 @@
 
 <head>
     <title>Tic Tac Toe</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Hide the element initially
+            $("#content").hide();
+
+            // Handle button click event
+            $("#toggleButton").click(function () {
+                $("#content").toggle();
+            });
+        });
+    </script>
 </head>
 
 <body>
@@ -10,6 +22,7 @@
     <h2>{{ msg }}</h2>
     <h2>Credits: {{ user_credits }}</h2>
     <form action="" method="POST">
+        {% if not check_if_game_is_over %}
         <table>
             {% for j in range(0, 3) %}
             <tr>
@@ -24,6 +37,7 @@
             </tr>
             {% endfor %}
         </table>
+        {% endif %}
         {% if user_credits >= 3 %}
         <button type="submit" name="reset">Start Over</button>
         {% endif %}
@@ -34,11 +48,11 @@
     <div>
         <a class="button" href="{{ url_for('logout') }}">Logout</a>
     </div>
-    <div>
-        user wins: {{ user_wins }}
-        user_loses: {{ user_loses }}
-        user_ties: {{ user_ties }}
-
+    <button id="toggleButton">Player stats</button>
+    <div id="content">
+        <p>user wins: {{ user_wins }}</p>
+        <p>user_loses: {{ user_loses }}</p>
+        <p>user_ties: {{ user_ties }}</p>
     </div>
 </body>
 
