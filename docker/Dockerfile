@@ -4,7 +4,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     APP_DIR=/app
 ENV PYTHONPATH=$PYTHONPATH:$APP_DIR
+
 COPY requirements-dev.txt requirements.txt ./
+RUN apt-get update && \
+    apt-get install -y postgresql-client
+
 RUN pip install -U --user pip && pip install --user -r requirements-dev.txt
 
 WORKDIR ${APP_DIR}
