@@ -31,6 +31,15 @@
         <button type="submit" name="credits">Buy 10 credits!</button>
         {% endif %}
     </form>
+    <div>
+        <a class="button" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    <div>
+        user wins: {{ user_wins }}
+        user_loses: {{ user_loses }}
+        user_ties: {{ user_ties }}
+
+    </div>
 </body>
 
 </html>

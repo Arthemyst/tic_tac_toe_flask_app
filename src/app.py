@@ -1,5 +1,4 @@
 from flask import Flask, make_response, render_template, request, redirect, url_for, session
-
 from tic_tac_toe_game.ai.negamax import Negamax
 from tic_tac_toe_game.player import AIPlayer, HumanPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
@@ -53,7 +52,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = User.query.filter_by(username=username).first()
-        user.credits = 10
+        user.credits, user.wins, user.loses, user.ties = 10, 0, 0, 0
         db.session.commit()
         if user and user.password == password:
             session['username'] = request.form['username']
@@ -85,7 +84,8 @@ def play_game():
             ai_move = game.get_move()
             game.play_move(ai_move)
     if "reset" in request.form:
-        user.credits -= 3
+        if user.credits > 2:
+            user.credits -= 3
         db.session.commit()
         game.board = [0 for i in range(9)]
     if "credits" in request.form:
@@ -98,12 +98,24 @@ def play_game():
         game_msg = msg[0]
         points = msg[1]
         user.credits += points
+        result = msg[2]
+        if result == 0:
+            user.ties += 1
+        elif result == 1:
+            user.loses += 1
+        elif result == 2:
+            user.wins += 1
         db.session.commit()
     else:
         game_msg = "play move"
-    if user.credits < 3 and game.is_over():
+    if user.credits > 0 and user.credits < 3 and game.is_over():
         return redirect(url_for('logout'))
-    response = make_response(render_template("game.html", game=game, msg=game_msg, user_credits=user.credits))
+    
+    user_wins = user.wins
+    user_loses = user.loses
+    user_ties = user.ties
+
+    response = make_response(render_template("game.html", game=game, msg=game_msg, user_credits=user.credits, user_wins=user_wins, user_loses=user_loses, user_ties=user_ties))
     c = ",".join(map(str, game.board))
     response.set_cookie("game_board", c)
     return response
