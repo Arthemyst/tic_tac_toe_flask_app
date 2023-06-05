@@ -7,7 +7,8 @@
 
 <body>
     <h1>Tic Tac Toe</h1>
-    <h2>{{msg}}</h2>
+    <h2>{{ msg }}</h2>
+    <h2>Credits: {{ user_credits }}</h2>
     <form action="" method="POST">
         <table>
             {% for j in range(0, 3) %}
@@ -23,7 +24,12 @@
             </tr>
             {% endfor %}
         </table>
+        {% if user_credits >= 3 %}
         <button type="submit" name="reset">Start Over</button>
+        {% endif %}
+        {% if user_credits == 0 %}
+        <button type="submit" name="credits">Buy 10 credits!</button>
+        {% endif %}
     </form>
 </body>
 

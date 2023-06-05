@@ -56,7 +56,7 @@ class TicTacToe(TwoPlayerGame):
 
     def winner(self):
         if self.lose(who=2):
-            return "AI Wins"
+            return ("Computer wins!", 0)
         if self.lose(who=1):
-            return "Human Wins"
-        return "Tie"
+            return ("You win, you receive 4 credits!", 4)
+        return ("Tie, play again!",0)
