@@ -21,7 +21,7 @@
     <h1>Tic Tac Toe</h1>
     <h2>Credits: {{ user_credits }}</h2>
     <form action="" method="POST">
-        {% if not check_if_game_is_over %}
+        {% if check_if_game_is_on %}
         <table>
             {% for j in range(0, 3) %}
             <tr>

@@ -4,10 +4,11 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(80) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS logindates (
+CREATE TABLE IF NOT EXISTS playerstats (
     id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
-    login_date TIMESTAMP,
+    login_datetime TIMESTAMP,
+    logout_datetime TIMESTAMP,
     credits INTEGER NOT NULL DEFAULT 10,
     wins INTEGER NOT NULL DEFAULT 0,
     loses INTEGER NOT NULL DEFAULT 0,
