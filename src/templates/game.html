@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div>
+    <h4><mark>Please do not reload page! You can lose session...</mark></h4>
+</div>
 <h2>Credits: {{ user_credits }}</h2>
 <script>
-    // Client-side JavaScript code
     socket.on('user_connected', function (data) {
         console.log('User connected:', data.user);
-        // Display a notification or update the UI
     });
 </script>
-
-<h2>{{ msg }}</h2>
+<h2>{{ game_msg }}</h2>
 <div>
     <form action="" method="POST">
         {% if check_if_game_is_on %}
@@ -29,12 +29,14 @@
             {% endfor %}
         </table>
         {% endif %}
-
+        {% if user_credits == 0 %}
+        <button class="btn btn-secondary mb-3" type="submit" name="credits">Buy 10 credits!</button>
+        {% endif %}
         {% if user_credits >= 3 %}
         <button class="btn btn-secondary mb-3" type="submit" name="reset">Start Over</button>
         {% endif %}
-        {% if user_credits == 0 %}
-        <button class="btn btn-secondary mb-3" type="submit" name="credits">Buy 10 credits!</button>
+        {% if less_than_three_credits_and_game_is_over and game_msg != "play move" %}
+        <h4>Game over! If you want to play, please log in again...</h4>
         {% endif %}
     </form>
 </div>
