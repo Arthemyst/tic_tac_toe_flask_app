@@ -53,7 +53,7 @@ class TicTacToe(TwoPlayerGame):
 
     def winner(self) -> tuple:
         if self.lose(who=2):
-            return ("Computer wins!", 0, 1)
+            return ("Computer wins!", 1)
         if self.lose(who=1):
-            return ("You win, you receive 4 credits!", 4, 2)
-        return ("Tie, play again!",0, 0)
+            return ("You win, you receive 4 credits!", 2)
+        return ("Tie, play again!", 0)

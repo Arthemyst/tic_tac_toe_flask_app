@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div>
+    <a class="btn btn-secondary mb-3" href="{{ url_for('play_game') }}">Play game!</a>
+
+    <a class="btn btn-secondary mb-3" href="{{ url_for('player_stats') }}">Check statistics</a>
+</div>
+
+{% endblock %}

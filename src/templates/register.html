@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Register</title>
-</head>
-
-<body>
-    <h1>Registration Page</h1>
+{% block content %}
+<h2>Registration Page</h1>
     <form action="/register" method="post">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username"><br><br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password"><br><br>
-        <input type="submit" value="Register">
+        <input class="btn btn-secondary mb-3" type="submit" value="Register">
     </form>
-</body>
-
-</html>
+    {% endblock %}

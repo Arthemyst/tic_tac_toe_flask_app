@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from tic_tac_toe_game.ai.negamax import Negamax
 from tic_tac_toe_game.player import AIPlayer, HumanPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
-
+from flask_login import login_required, current_user, LoginManager, login_user, logout_user, UserMixin
 database_ip = CustomEnvironment.get_database_ip()
 database_name = CustomEnvironment.get_database_name()
 database_password = CustomEnvironment.get_database_password()
@@ -19,21 +19,28 @@ app.config[
     "SQLALCHEMY_DATABASE_URI"
 ] = f"postgresql://{database_user}:{database_password}@{database_ip}:5432/{database_name}"
 app.secret_key = CustomEnvironment.get_secret_key()
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
 bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 ai_algo = Negamax(2)
 
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
     player_stats = db.relationship("PlayerStats", backref="user", lazy=True)
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
+    
+    def is_active(self):
+        return self.is_active
+
 
 
 class PlayerStats(db.Model):
@@ -54,6 +61,12 @@ class PlayerStats(db.Model):
         self.wins = 0
         self.loses = 0
         self.ties = 0
+
+@login_manager.user_loader
+def load_user(user_id):
+    # Load and return the user object based on the user_id
+    # Replace this with your own user loading logic
+    return User.query.get(user_id)
 
 
 @app.route("/")
@@ -91,20 +104,12 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/check_session")
-def check_session():
-    return f"{session.items()}"
-
-
-@app.route("/check_cookies")
-def check_cookiesn():
-    cookies = request.cookies
-
-    return render_template("cookies.html", cookies=cookies)
-
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    if current_user.is_authenticated:
+        # Redirect the user to the desired page if already logged in
+        return redirect(url_for('profile_page'))
+    
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -128,8 +133,9 @@ def login():
                 )
                 db.session.add(new_login_datetime)
                 db.session.commit()
+                login_user(user)
 
-            return redirect(url_for("play_game"))
+            return redirect(url_for("profile_page"))
 
         else:
             return """
@@ -145,9 +151,8 @@ def login():
 
 
 @app.route("/logout")
+@login_required
 def logout():
-    response = make_response("Logged out")
-    response.set_cookie("game_board", "", expires=0)
     login_datetime = session.get("login_datetime")
     username = session.get("username")
     user = User.query.filter_by(username=username).first()
@@ -161,6 +166,7 @@ def logout():
     login_date_for_user.credits = session.get("credits")
     db.session.commit()
     session.clear()
+    logout_user()
 
     return """
     <script>
@@ -172,9 +178,19 @@ def logout():
     )
 
 
+
+
 @app.route("/player_stats", methods=["GET", "POST"])
 def player_stats():
-    pass
+
+
+    return render_template("player_stats.html")
+
+@app.route("/profile")
+@login_required
+def profile_page():
+    username = current_user.username
+    return render_template("profile.html", username=username)
 
 
 @app.route("/game", methods=["GET", "POST"])
@@ -200,9 +216,9 @@ def play_game():
         session["credits"] = 10
 
     if game.is_over():
-        msg = game.winner()
-        game_msg = msg[0]
-        result = msg[2]
+        winner_msg = game.winner()
+        game_msg = winner_msg[0]
+        result = winner_msg[1]
         if result == 0:
             session["ties"] += 1
         elif result == 1:
