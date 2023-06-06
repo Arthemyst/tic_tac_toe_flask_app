@@ -32,6 +32,7 @@ class LoginDate(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     login_date = db.Column(db.Date)
+    # play_time_in_minutes = db.Column(db.Integer, default=0)
     credits = db.Column(db.Integer, default=10)
     wins = db.Column(db.Integer, default=0)
     loses = db.Column(db.Integer, default=0)
@@ -65,7 +66,6 @@ def register():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    session.clear()
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -82,7 +82,8 @@ def login():
                 new_login_date = LoginDate(user_id=user.id, login_date=date.today())
                 db.session.add(new_login_date)
                 db.session.commit()
-            return redirect(url_for('play_game'))
+                start_new_game = True
+            return redirect(url_for('play_game'), start_new_game=start_new_game)
 
         else:
             return 'Invalid username or password!'
@@ -91,8 +92,14 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()
-    return redirect(url_for('login'))
+    response = make_response('Logged out')
+    response.set_cookie('game_board', '', expires=0)
+    return '''
+    <script>
+        alert('You have been logged out. Please log in if you want to play again.');
+        window.location.href = "{}";
+    </script>
+    '''.format(url_for('login'))
 
 
 @app.route("/game", methods=["GET", "POST"])
@@ -102,7 +109,6 @@ def play_game():
         show_stats = True
     else:
         show_stats = False
-
 
     username = session.get("username")
     user = User.query.filter_by(username=username).first()
@@ -139,14 +145,17 @@ def play_game():
         user_login_date.credits += points
         result = msg[2]
         if result == 0:
+            msg_text = "tie"
             user_login_date.ties += 1
             check_if_game_is_over = True
             db.session.commit()
         elif result == 1:
+            msg_text = "Computer wins"
             user_login_date.loses += 1
             check_if_game_is_over = True
             db.session.commit()
         elif result == 2:
+            msg_text = "You win"
             user_login_date.wins += 1
             check_if_game_is_over = True
             db.session.commit()
@@ -157,7 +166,7 @@ def play_game():
     response = make_response(render_template(
         "game.html", 
         game=game, 
-        msg=game_msg, 
+        msg=msg_text, 
         user_credits=user_login_date.credits, 
         user_wins=user_login_date.wins, 
         user_loses=user_login_date.loses, 
