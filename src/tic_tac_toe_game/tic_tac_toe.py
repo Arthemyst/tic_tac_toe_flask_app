@@ -12,11 +12,8 @@ class TicTacToe(TwoPlayerGame):
     def possible_moves(self) -> List:
         return [i + 1 for i, e in enumerate(self.board) if e == 0]
 
-    def make_move(self, move):
+    def make_move(self, move) -> None:
         self.board[int(move) - 1] = self.current_player
-
-    def unmake_move(self, move):  # optional method (speeds up the AI)
-        self.board[int(move) - 1] = 0
 
     def lose(self, who=None) -> bool:
         if who is None:
@@ -42,7 +39,7 @@ class TicTacToe(TwoPlayerGame):
             )
         )
 
-    def spot_string(self, i, j):
+    def spot_string(self, i, j) -> str:
         return ["_", "O", "X"][self.board[3 * j + i]]
 
     def scoring(self) -> int:

@@ -1,10 +1,12 @@
 from flask import Flask, make_response, render_template, request, redirect, url_for, session
+from flask_bcrypt import Bcrypt
 from tic_tac_toe_game.ai.negamax import Negamax
 from tic_tac_toe_game.player import AIPlayer, HumanPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
 from flask_sqlalchemy import SQLAlchemy
 from config import CustomEnvironment
 from datetime import datetime
+from flask_socketio import SocketIO, emit
 database_ip = CustomEnvironment.get_database_ip()
 database_name = CustomEnvironment.get_database_name()
 database_password = CustomEnvironment.get_database_password()
@@ -13,6 +15,8 @@ database_user = CustomEnvironment.get_database_user()
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{database_user}:{database_password}@{database_ip}:5432/{database_name}'
 app.secret_key = CustomEnvironment.get_secret_key()
+bcrypt = Bcrypt(app)
+socketio = SocketIO(app)
 db = SQLAlchemy(app)
 ai_algo = Negamax(2)
 
@@ -55,6 +59,7 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
         user = User.query.filter_by(username=username).first()
         if user:
             return """
@@ -63,7 +68,7 @@ def register():
                 window.location.href = "{}";
             </script>
             """.format(url_for('login'))
-        new_user = User(username, password)
+        new_user = User(username=username, password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         return """
@@ -77,28 +82,33 @@ def register():
 
 @app.route('/check_session')
 def check_session():
-    # Access the session keys and values
-    session_keys = session.keys()
-    session_values = session.values()
-    # Return a response indicating the session state
     return f'{session.items()}'
+
+
+@app.route('/check_cookies')
+def check_cookiesn():
+    cookies = request.cookies
+
+    return render_template('cookies.html', cookies=cookies)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = User.query.filter_by(username=username, password=password).first()
-        if user:
+        user = User.query.filter_by(username=username).first()
+        if user and bcrypt.check_password_hash(user.password, password):
             login_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             session['username'] = request.form['username']
             session['check_if_game_is_on'] = False
             session['login_datetime'] = login_datetime
+            session['wins'] = 0
+            session['loses'] = 0
+            session['ties'] = 0
+            session['credits'] = 10
+            session["game_board"] = ",".join(map(str, [0 for i in range(9)])) 
             login_datetime_for_user = PlayerStats.query.filter_by(user_id=user.id, login_datetime=login_datetime).first()
-            if login_datetime_for_user:
-                login_datetime_for_user.credits = 10
-                db.session.commit()
-            else:
+            if not login_datetime_for_user:
                 new_login_datetime = PlayerStats(user_id=user.id, login_datetime=login_datetime)
                 db.session.add(new_login_datetime)
                 db.session.commit()
@@ -124,6 +134,10 @@ def logout():
     user = User.query.filter_by(username=username).first()
     login_date_for_user = PlayerStats.query.filter_by(user_id=user.id, login_datetime=login_datetime).first()
     login_date_for_user.logout_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    login_date_for_user.wins = session.get('wins')
+    login_date_for_user.loses = session.get('loses')
+    login_date_for_user.ties = session.get('ties')
+    login_date_for_user.credits = session.get('credits')
     db.session.commit()
     session.clear()
 
@@ -135,21 +149,15 @@ def logout():
     '''.format(url_for('login'))
 
 
+@app.route("/player_stats", methods=["GET", "POST"])
+def player_stats():
+    pass
+    
+
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
-    
-    if "stats" in request.form:
-        show_stats = True
-    else:
-        show_stats = False
-
-    username = session.get("username")
-    login_datetime = session.get("login_datetime")
-    user = User.query.filter_by(username=username).first()
-    user_login_datetime = PlayerStats.query.filter_by(user_id=user.id, login_datetime=login_datetime).first()
-
     game = TicTacToe([HumanPlayer(), AIPlayer(ai_algo)])
-    game_cookie = request.cookies.get("game_board")
+    game_cookie = session.get("game_board")
     if game_cookie:
         game.board = [int(x) for x in game_cookie.split(",")]
     if "choice" in request.form:
@@ -158,37 +166,28 @@ def play_game():
             ai_move = game.get_move()
             game.play_move(ai_move)
     if "reset" in request.form:
-        if user_login_datetime.credits > 2:
-            user_login_datetime.credits -= 3
-            db.session.commit()
+        if session['credits'] > 2:
+            session['credits'] -= 3
             session['check_if_game_is_on'] = True
         else:
             return redirect(url_for('logout'))
 
         game.board = [0 for i in range(9)]
     if "credits" in request.form:
-        user_login_datetime.credits = 10
-        db.session.commit()
-
+        session['credits'] = 10
 
     if game.is_over():
         msg = game.winner()
         game_msg = msg[0]
-        points = msg[1]
-        user_login_datetime.credits += points
         result = msg[2]
         if result == 0:
-            game_msg = "tie"
-            user_login_datetime.ties += 1
-            db.session.commit()
+            session['ties'] += 1
         elif result == 1:
-            game_msg = "Computer wins"
-            user_login_datetime.loses += 1
-            db.session.commit()
+            session['loses'] += 1
         elif result == 2:
-            game_msg = "You win"
-            user_login_datetime.wins += 1
-            db.session.commit()
+            session['wins'] += 1
+            session['credits'] += 4
+        game.board = [0 for i in range(9)]
         session['check_if_game_is_on'] = False
     else:
         game_msg = "play move"
@@ -197,16 +196,19 @@ def play_game():
         "game.html", 
         game=game, 
         msg=game_msg, 
-        user_credits=user_login_datetime.credits, 
-        user_wins=user_login_datetime.wins, 
-        user_loses=user_login_datetime.loses, 
-        user_ties=user_login_datetime.ties, 
+        user_credits=session.get("credits"), 
+        user_wins=session.get("wins"), 
+        user_loses=session.get("loses"), 
+        user_ties=session.get("ties"), 
         check_if_game_is_on=game_is_on, 
-        show_stats=show_stats
         ))
-    c = ",".join(map(str, game.board))
-    response.set_cookie("game_board", c)
+    session["game_board"] = ",".join(map(str, game.board))
     return response
+
+@socketio.on('connect')
+def handle_connect():
+    user = session.get('username')
+    emit('user_connected', {'user': user})
 
 def run_web_app():
     app.run(debug=True, host="0.0.0.0")

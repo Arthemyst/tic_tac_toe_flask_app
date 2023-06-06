@@ -3,3 +3,5 @@ flask_sqlalchemy
 psycopg2-binary
 django-environ 
 flask_bootstrap
+flask_socketio
+flask_bcrypt

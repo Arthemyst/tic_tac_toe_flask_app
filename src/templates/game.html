@@ -10,6 +10,15 @@
 <body>
     <h1>Tic Tac Toe</h1>
     <h2>Credits: {{ user_credits }}</h2>
+    <script>
+        // Client-side JavaScript code
+        socket.on('user_connected', function (data) {
+            console.log('User connected:', data.user);
+            // Display a notification or update the UI
+        });
+    </script>
+
+    <h2>{{ msg }}</h2>
     <form action="" method="POST">
         {% if check_if_game_is_on %}
         <table>
@@ -27,6 +36,7 @@
             {% endfor %}
         </table>
         {% endif %}
+
         {% if user_credits >= 3 %}
         <button type="submit" name="reset">Start Over</button>
         {% endif %}
@@ -43,5 +53,13 @@
         <p>user_ties: {{ user_ties }}</p>
     </div>
 </body>
+<script>
+    // Disable page refresh on Enter key press and browser refresh button
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'F5') {
+            e.preventDefault();
+        }
+    });
+</script>
 
 </html>
