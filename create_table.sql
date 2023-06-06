@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(80) UNIQUE NOT NULL,
+    password VARCHAR(80) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS playerstats (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    login_datetime TIMESTAMP,
+    logout_datetime TIMESTAMP,
+    credits INTEGER NOT NULL DEFAULT 10,
+    wins INTEGER NOT NULL DEFAULT 0,
+    loses INTEGER NOT NULL DEFAULT 0,
+    ties INTEGER NOT NULL DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+);

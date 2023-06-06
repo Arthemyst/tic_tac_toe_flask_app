@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Tic Tac Toe</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+    <h1>Tic Tac Toe</h1>
+    <h2>Credits: {{ user_credits }}</h2>
+    <script>
+        // Client-side JavaScript code
+        socket.on('user_connected', function (data) {
+            console.log('User connected:', data.user);
+            // Display a notification or update the UI
+        });
+    </script>
+
+    <h2>{{ msg }}</h2>
+    <form action="" method="POST">
+        {% if check_if_game_is_on %}
+        <table>
+            {% for j in range(0, 3) %}
+            <tr>
+                {% for i in range(0, 3) %}
+                <td>
+                    <button type="submit" name="choice" value="{{j*3+i+1}}" {{"disabled" if game.spot_string(i, j)!="_"
+                        }}>
+                        {{game.spot_string(i, j)}}
+                    </button>
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </table>
+        {% endif %}
+
+        {% if user_credits >= 3 %}
+        <button type="submit" name="reset">Start Over</button>
+        {% endif %}
+        {% if user_credits == 0 %}
+        <button type="submit" name="credits">Buy 10 credits!</button>
+        {% endif %}
+    </form>
+    <div>
+        <a class="button" href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    <div id="content">
+        <p>user wins: {{ user_wins }}</p>
+        <p>user_loses: {{ user_loses }}</p>
+        <p>user_ties: {{ user_ties }}</p>
+    </div>
+</body>
+<script>
+    // Disable page refresh on Enter key press and browser refresh button
+    window.addEventListener('keydown', function (e) {
+        if (e.key === 'F5') {
+            e.preventDefault();
+        }
+    });
+</script>
+
+</html>

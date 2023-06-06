@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  database:
+    image: postgres:14.2-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+  web:
+    build:
+      dockerfile: ./docker/Dockerfile
+      context: ../
+    command: python main.py
+    ports:
+      - "5000:5000"
+    volumes:
+      - ../src:/app
+    depends_on:
+      - database
+    restart: on-failure
+    env_file:
+      - .env
+
+volumes:
+  db-data:
