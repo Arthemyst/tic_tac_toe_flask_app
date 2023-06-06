@@ -21,5 +21,10 @@
     <h3>wins: {{ user_wins_today }}</h3>
     <h3>loses: {{ user_loses_today }}</h3>
     <h3>ties: {{ user_ties_today }}</h3>
+    <h3>total time today: {{ total_played_time }}</h3>
+    {% for item in total %}
+    <h3>{{ item.login_datetime }}, {{ item.logout_datetime }}</h3>
+    {% endfor %}
+
 </div>
 {% endblock %}

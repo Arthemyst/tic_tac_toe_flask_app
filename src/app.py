@@ -65,8 +65,6 @@ class PlayerStats(db.Model):
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Load and return the user object based on the user_id
-    # Replace this with your own user loading logic
     return User.query.get(user_id)
 
 
@@ -157,7 +155,7 @@ def logout():
     login_date_for_user = PlayerStats.query.filter_by(
         user_id=user.id, login_datetime=login_datetime
     ).first()
-    login_date_for_user.logout_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    login_date_for_user.logout_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     login_date_for_user.wins = session.get("wins")
     login_date_for_user.loses = session.get("loses")
     login_date_for_user.ties = session.get("ties")
@@ -175,19 +173,23 @@ def logout():
         url_for("login")
     )
 
-# def get_total_time(day, username):
-#     user = User.query.filter_by(username=username).first()
+def get_total_time(day, username):
+    user = User.query.filter_by(username=username).first()
 
-#     total_time = db.session.query(func.sum(func.extract('epoch', PlayerStats.logout_datetime - PlayerStats.login_datetime))).\
-#         filter(func.date(PlayerStats.login_datetime) == day, PlayerStats.logout_datetime.isnot(None)).\
-#         scalar()
+    total_time = db.session.query(
+        func.sum(func.extract('epoch', PlayerStats.logout_datetime - PlayerStats.login_datetime))
+    ).join(User).filter(
+        func.date(PlayerStats.login_datetime) == day,
+        PlayerStats.logout_datetime.isnot(None),
+        User.id == user.id
+    ).scalar()
 
-#     # Convert total_time from seconds to a more suitable format (e.g., HH:MM:SS)
-#     hours = int(total_time // 3600) if total_time else 0
-#     minutes = int((total_time % 3600) // 60) if total_time else 0
-#     seconds = int(total_time % 60) if total_time else 0
+    # Convert total_time from seconds to a more suitable format (e.g., HH:MM:SS)
+    hours = int(total_time // 3600) if total_time else 0
+    minutes = int((total_time % 3600) // 60) if total_time else 0
+    seconds = int(total_time % 60) if total_time else 0
 
-#     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 @app.route("/player_stats", methods=['GET', 'POST'])
 def player_stats():
@@ -197,12 +199,12 @@ def player_stats():
         date_object = datetime.strptime(selected_date, '%Y-%m-%d')
     username = current_user.username
     user = User.query.filter_by(username=username).first()
-    # total_played_time = get_total_time(date_object, username)
-
+    total_played_time = get_total_time(date_object, username)
+    total = PlayerStats.query.filter(PlayerStats.user_id == user.id).all()
     user_wins_today = db.session.query(func.sum(PlayerStats.wins)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
     user_loses_today = db.session.query(func.sum(PlayerStats.loses)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
     user_ties_today = db.session.query(func.sum(PlayerStats.ties)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
-    return render_template("player_stats.html", user_wins_today=user_wins_today, user_loses_today=user_loses_today, user_ties_today=user_ties_today)
+    return render_template("player_stats.html", user_wins_today=user_wins_today, user_loses_today=user_loses_today, user_ties_today=user_ties_today, total_played_time=total_played_time, total=total)
 
 def custom_login_required(f):
     @wraps(f)
@@ -231,7 +233,7 @@ def profile_page():
     login_date_for_user = PlayerStats.query.filter_by(
         user_id=user.id, login_datetime=login_datetime
     ).first()
-    login_date_for_user.logout_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    login_date_for_user.logout_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     login_date_for_user.wins = session.get("wins")
     login_date_for_user.loses = session.get("loses")
     login_date_for_user.ties = session.get("ties")
