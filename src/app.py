@@ -137,6 +137,7 @@ def logout():
 
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
+    
     if "stats" in request.form:
         show_stats = True
     else:

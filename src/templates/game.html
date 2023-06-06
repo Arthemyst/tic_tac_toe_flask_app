@@ -4,17 +4,7 @@
 <head>
     <title>Tic Tac Toe</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            // Hide the element initially
-            $("#content").hide();
 
-            // Handle button click event
-            $("#toggleButton").click(function () {
-                $("#content").toggle();
-            });
-        });
-    </script>
 </head>
 
 <body>
@@ -47,7 +37,6 @@
     <div>
         <a class="button" href="{{ url_for('logout') }}">Logout</a>
     </div>
-    <button id="toggleButton">Player stats</button>
     <div id="content">
         <p>user wins: {{ user_wins }}</p>
         <p>user_loses: {{ user_loses }}</p>
