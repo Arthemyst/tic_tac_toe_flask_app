@@ -16,9 +16,13 @@ Register page
 
 ![image](https://github.com/Arthemyst/flask_app/assets/59807704/41e1f96e-f29b-45de-934a-1a6cd6c9c9a9)
 
-Profile page
+Profile page after logged in
+
+![image](https://github.com/Arthemyst/flask_app/assets/59807704/2ea659ba-103d-4d09-b91f-60b6c0453a6d)
 
 Game page
+
+
 
 Statistics Page
 
