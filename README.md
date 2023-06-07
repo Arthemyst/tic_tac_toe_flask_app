@@ -22,10 +22,11 @@ Profile page after logged in
 
 Game page
 
-
+![image](https://github.com/Arthemyst/flask_app/assets/59807704/b37ee28c-0d39-4f2e-aef8-ea918fbfa56f)
 
 Statistics Page
 
+![image](https://github.com/Arthemyst/Football_analysis/assets/59807704/f943770d-3324-44f9-ba33-464eb875cc16)
 
 
 ## Setup
