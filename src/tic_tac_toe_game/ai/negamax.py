@@ -40,20 +40,14 @@ def negamax(game, depth, origDepth, scoring, alpha=+inf, beta=-inf, tt=None):
         state.ai_move = possible_moves[0]
 
     bestValue = -inf
-    unmake_move = hasattr(state, "unmake_move")
 
     for move in possible_moves:
-        if not unmake_move:
-            game = state.copy()
 
+        game = state.copy()
         game.make_move(move)
         game.switch_player()
 
         move_alpha = -negamax(game, depth - 1, origDepth, scoring, -beta, -alpha, tt)
-
-        if unmake_move:
-            game.switch_player()
-            game.unmake_move(move)
 
         if bestValue < move_alpha:
             bestValue = move_alpha
@@ -89,13 +83,10 @@ class Negamax:
         self.win_score = win_score
 
     def __call__(self, game):
-        """
-        Returns the AI's best move given the current state of the game.
-        """
 
         scoring = (
             self.scoring if self.scoring else (lambda g: g.scoring())
-        )  # horrible hack
+        )
 
         self.alpha = negamax(
             game,

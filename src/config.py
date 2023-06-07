@@ -8,6 +8,7 @@ class CustomEnvironment:
         DATABASE_NAME=(str, 'postgres'),
         INITIAL_CREDITS=(int, 10),
         ADDITION_CREDITS=(int, 10),
+        CREDITS_FOR_WIN=(int, 4)
     )
 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,6 +22,7 @@ class CustomEnvironment:
     _database_name = env.str('DATABASE_NAME')
     _initial_credits = env.int('INITIAL_CREDITS')
     _addition_credits = env.int('ADDITION_CREDITS')
+    _credits_for_win = env.int('CREDITS_FOR_WIN')
     
 
     @classmethod
@@ -50,3 +52,7 @@ class CustomEnvironment:
     @classmethod
     def get_addition_credits(cls) -> int:
         return cls._addition_credits
+
+    @classmethod
+    def get_credits_for_win(cls) -> int:
+        return cls._credits_for_win

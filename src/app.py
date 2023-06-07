@@ -1,29 +1,18 @@
-from datetime import datetime, date
-from sqlalchemy import func
-from config import CustomEnvironment
-from flask import (
-    Flask,
-    make_response,
-    redirect,
-    render_template,
-    request,
-    session,
-    url_for,
-)
+from datetime import date, datetime
 from functools import wraps
+
+from flask import (Flask, make_response, redirect, render_template, request,
+                   session, url_for)
 from flask_bcrypt import Bcrypt
+from flask_login import (LoginManager, UserMixin, current_user, login_required,
+                         login_user, logout_user)
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import func
+
+from config import CustomEnvironment
 from tic_tac_toe_game.ai.negamax import Negamax
-from tic_tac_toe_game.player import AIPlayer, HumanPlayer
+from tic_tac_toe_game.player import AIPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
-from flask_login import (
-    login_required,
-    current_user,
-    LoginManager,
-    login_user,
-    logout_user,
-    UserMixin,
-)
 
 database_ip = CustomEnvironment.get_database_ip()
 database_name = CustomEnvironment.get_database_name()
@@ -72,7 +61,7 @@ class PlayerStats(db.Model):
     def __init__(self, user_id, login_datetime):
         self.user_id = user_id
         self.login_datetime = login_datetime
-        self.credits = 10
+        self.credits = CustomEnvironment.get_initial_credits()
         self.wins = 0
         self.loses = 0
         self.ties = 0
@@ -129,11 +118,12 @@ def login():
             login_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             session["username"] = request.form["username"]
             session["check_if_game_is_on"] = False
+            session["second_game"] = False
             session["login_datetime"] = login_datetime
             session["wins"] = 0
             session["loses"] = 0
             session["ties"] = 0
-            session["credits"] = 10
+            session["credits"] = CustomEnvironment.get_initial_credits()
             session["game_board"] = ",".join(map(str, [0 for i in range(9)]))
             login_datetime_for_user = PlayerStats.query.filter_by(
                 user_id=user.id, login_datetime=login_datetime
@@ -324,7 +314,7 @@ def profile_page():
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
     session["less_than_three_credits_and_game_is_over"] = False
-    game = TicTacToe([HumanPlayer(), AIPlayer(ai_algo)])
+    game = TicTacToe(["human", AIPlayer(ai_algo)])
     game_cookie = session.get("game_board")
     if game_cookie:
         game.board = [int(x) for x in game_cookie.split(",")]
@@ -342,7 +332,7 @@ def play_game():
 
         game.board = [0 for i in range(9)]
     if "credits" in request.form:
-        session["credits"] = 10
+        session["credits"] = CustomEnvironment.get_addition_credits()
 
     if game.is_over():
         winner_msg = game.winner()
@@ -354,13 +344,14 @@ def play_game():
             session["loses"] += 1
         elif result == 2:
             session["wins"] += 1
-            session["credits"] += 4
+            session["credits"] += CustomEnvironment.get_credits_for_win()
         game.board = [0 for i in range(9)]
         session["check_if_game_is_on"] = False
         if session["credits"] < 3:
             session["less_than_three_credits_and_game_is_over"] = True
+            session["second_game"] = True
     else:
-        game_msg = "play move"
+        game_msg = "play"
     game_is_on = session.get("check_if_game_is_on")
     response = make_response(
         render_template(
@@ -375,6 +366,7 @@ def play_game():
             less_than_three_credits_and_game_is_over=session.get(
                 "less_than_three_credits_and_game_is_over"
             ),
+            second_game=session.get("second_game"),
         )
     )
     session["game_board"] = ",".join(map(str, game.board))

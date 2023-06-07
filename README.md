@@ -27,6 +27,9 @@ DATABASE_IP=localhost-ip_of_docker_database_1_found_by_below_command
 DATABASE_PASSWORD=postgres
 DATABASE_USER=postgres
 DATABASE_NAME=postgres
+INITIAL_CREDITS=10
+ADDITIONAL_CREDITS=10
+CREDITS_FOR_WIN=4
 ```
 
 ### Start docker:
