@@ -1,24 +1,17 @@
-<!doctype html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Tic Tac Toe</title>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-</head>
-
-<body>
-    <h1>Tic Tac Toe</h1>
-    <h2>Credits: {{ user_credits }}</h2>
-    <script>
-        // Client-side JavaScript code
-        socket.on('user_connected', function (data) {
-            console.log('User connected:', data.user);
-            // Display a notification or update the UI
-        });
-    </script>
-
-    <h2>{{ msg }}</h2>
+{% block content %}
+<div>
+    <h4><mark>Please do not reload page! You can lose session...</mark></h4>
+</div>
+<h2>Credits: {{ user_credits }}</h2>
+<script>
+    socket.on('user_connected', function (data) {
+        console.log('User connected:', data.user);
+    });
+</script>
+<h2>{{ msg }}</h2>
+<div>
     <form action="" method="POST">
         {% if check_if_game_is_on %}
         <table>
@@ -36,23 +29,18 @@
             {% endfor %}
         </table>
         {% endif %}
-
-        {% if user_credits >= 3 %}
-        <button type="submit" name="reset">Start Over</button>
-        {% endif %}
         {% if user_credits == 0 %}
-        <button type="submit" name="credits">Buy 10 credits!</button>
+        <button class="btn btn-secondary mb-3" type="submit" name="credits">Buy 10 credits!</button>
+        {% endif %}
+        {% if user_credits >= 3 %}
+        <button class="btn btn-secondary mb-3" type="submit" name="reset">Start Over</button>
+        {% endif %}
+        {% if less_than_three_credits_and_game_is_over and game_msg != "play move" and user_credits != 0 %}
+        <h4>Game over! If you want to play, please log in again...</h4>
         {% endif %}
     </form>
-    <div>
-        <a class="button" href="{{ url_for('logout') }}">Logout</a>
-    </div>
-    <div id="content">
-        <p>user wins: {{ user_wins }}</p>
-        <p>user_loses: {{ user_loses }}</p>
-        <p>user_ties: {{ user_ties }}</p>
-    </div>
-</body>
+</div>
+
 <script>
     // Disable page refresh on Enter key press and browser refresh button
     window.addEventListener('keydown', function (e) {
@@ -61,5 +49,4 @@
         }
     });
 </script>
-
-</html>
+{% endblock %}

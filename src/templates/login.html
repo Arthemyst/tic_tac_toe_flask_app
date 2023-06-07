@@ -1,9 +1,6 @@
-<!DOCTYPE html>
-<html>
+{% extends 'base.html' %}
 
-<head>
-    <title>Login</title>
-</head>
+{% block content %}
 
 <body>
     <h1>Login Page</h1>
@@ -12,14 +9,11 @@
         <input type="text" id="username" name="username"><br><br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password"><br><br>
-        <input type="submit" value="Login">
+        <div>
+            <input class="btn btn-secondary mb-3" type="submit" value="Login">
+            <a class="btn btn-secondary mb-3" href="{{ url_for('register') }}">Register</a>
+        </div>
     </form>
-    <a class="button" href="{{ url_for('register') }}">Register</a>
-</body>
-<script>
-    socket.on('redirect', function (data) {
-        window.location.href = data.url;
-    });
-</script>
 
-</html>
+
+    {% endblock %}

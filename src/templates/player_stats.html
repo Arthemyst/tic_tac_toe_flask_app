@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<form action="" method="POST">
+    <input type="text" name="selected_date" id="datepicker" placeholder="Select a date">
+    <button type="submit">Submit</button>
+</form>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-datepicker@1.11.0/dist/js/bootstrap-datepicker.min.js"></script>
+<h5>date format: yyyy-mm-dd</h5>
+<script>
+    $(document).ready(function () {
+        $('#datepicker').datepicker({
+            format: 'yyyy-mm-dd',
+            autoclose: true
+        });
+    });
+</script>
+<div>
+    <h3>Statistics for {{ username }}</h3>
+    <h4>{{ selected_date }}</h4>
+    {% if user_wins_today == None %}
+    <h3>No activity that day...</h3>
+    {% else %}
+    <h3>wins: {{ user_wins_today }}</h3>
+    <h3>loses: {{ user_loses_today }}</h3>
+    <h3>ties: {{ user_ties_today }}</h3>
+    <h3>total time today: {{ total_played_time }}</h3>
+    {% endif %}
+</div>
+{% endblock %}
