@@ -2,6 +2,15 @@
 ## Introduction
 Application for playing tic tac toe game. Player plays with computer (ai based on negamax - simplified minmax algorithm). Enjoy!
 
+## Images from website
+
+Home page before logging
+![image](https://github.com/Arthemyst/flask_app/assets/59807704/252bf596-5045-4177-8a5a-4efe0c08b4ad)
+
+Login page
+
+
+
 ## Setup
 The first thing to do is to clone the repository:
 ```sh
