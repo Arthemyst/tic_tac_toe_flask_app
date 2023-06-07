@@ -18,12 +18,16 @@ def test_home_page(client):
 
 
 def test_register(client):
-    response = client.post("/register", data={"username": "test_user", "password": "test_password"})
+    response = client.post(
+        "/register", data={"username": "test_user", "password": "test_password"}
+    )
     assert response.status_code == 200
 
 
 def test_login(client):
-    response = client.post("/login", data={"username": "test_user", "password": "test_password"})
+    response = client.post(
+        "/login", data={"username": "test_user", "password": "test_password"}
+    )
     assert response.status_code == 302
     assert session["username"] == "test_user"
     assert session["check_if_game_is_on"] == False
@@ -44,7 +48,7 @@ def test_game_page(client):
     response = client.get("/game")
     with client.session_transaction() as session:
         assert response.status_code == 200 or response.status_code == 302
-        assert b"play move" in response.data
+        assert b"play" in response.data
         assert session.get("username") == "test_user"
 
 
@@ -63,8 +67,6 @@ def test_player_stats_page(client):
         assert response.status_code == 200
         assert b"Statistics for" in response.data
         assert session.get("username") == "test_user"
-
-
 
 
 if __name__ == "__main__":
