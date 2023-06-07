@@ -118,6 +118,7 @@ def login():
             login_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             session["username"] = request.form["username"]
             session["check_if_game_is_on"] = False
+            session["second_game"] = False
             session["login_datetime"] = login_datetime
             session["wins"] = 0
             session["loses"] = 0
