@@ -12,6 +12,17 @@ Login page
 
 ![image](https://github.com/Arthemyst/flask_app/assets/59807704/22b9b20c-39d6-49bc-a75c-fb3f5a7bc328)
 
+Register page
+
+![image](https://github.com/Arthemyst/flask_app/assets/59807704/41e1f96e-f29b-45de-934a-1a6cd6c9c9a9)
+
+Profile page
+
+Game page
+
+Statistics Page
+
+
 
 ## Setup
 The first thing to do is to clone the repository:
