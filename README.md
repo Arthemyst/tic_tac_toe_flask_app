@@ -61,7 +61,7 @@ CREDITS_FOR_WIN=4
 
 ### Start docker:
 
-Application runs on docker. Please run docker-compose to install dependiences and run application:
+Application runs on docker. To run app you need to install docker on your machine. Please run docker-compose to install dependiences and run application:
 
 First terminal:
 ```sh
