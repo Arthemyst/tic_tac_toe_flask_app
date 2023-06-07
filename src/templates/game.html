@@ -10,7 +10,7 @@
         console.log('User connected:', data.user);
     });
 </script>
-<h2>{{ game_msg }}</h2>
+<h2>{{ msg }}</h2>
 <div>
     <form action="" method="POST">
         {% if check_if_game_is_on %}
@@ -35,7 +35,7 @@
         {% if user_credits >= 3 %}
         <button class="btn btn-secondary mb-3" type="submit" name="reset">Start Over</button>
         {% endif %}
-        {% if less_than_three_credits_and_game_is_over and game_msg != "play move" %}
+        {% if less_than_three_credits_and_game_is_over and game_msg != "play move" and user_credits != 0 %}
         <h4>Game over! If you want to play, please log in again...</h4>
         {% endif %}
     </form>

@@ -1,15 +1,30 @@
 from datetime import datetime, date
 from sqlalchemy import func
 from config import CustomEnvironment
-from flask import (Flask, make_response, redirect, render_template, request,
-                   session, url_for)
+from flask import (
+    Flask,
+    make_response,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+)
 from functools import wraps
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from tic_tac_toe_game.ai.negamax import Negamax
 from tic_tac_toe_game.player import AIPlayer, HumanPlayer
 from tic_tac_toe_game.tic_tac_toe import TicTacToe
-from flask_login import login_required, current_user, LoginManager, login_user, logout_user, UserMixin
+from flask_login import (
+    login_required,
+    current_user,
+    LoginManager,
+    login_user,
+    logout_user,
+    UserMixin,
+)
+
 database_ip = CustomEnvironment.get_database_ip()
 database_name = CustomEnvironment.get_database_name()
 database_password = CustomEnvironment.get_database_password()
@@ -21,7 +36,7 @@ app.config[
 ] = f"postgresql://{database_user}:{database_password}@{database_ip}:5432/{database_name}"
 app.secret_key = CustomEnvironment.get_secret_key()
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+login_manager.login_view = "login"
 bcrypt = Bcrypt(app)
 db = SQLAlchemy(app)
 ai_algo = Negamax(2)
@@ -38,10 +53,9 @@ class User(UserMixin, db.Model):
     def __init__(self, username, password):
         self.username = username
         self.password = password
-    
+
     def is_active(self):
         return self.is_active
-
 
 
 class PlayerStats(db.Model):
@@ -62,6 +76,7 @@ class PlayerStats(db.Model):
         self.wins = 0
         self.loses = 0
         self.ties = 0
+
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -105,7 +120,7 @@ def register():
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-   
+
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
@@ -173,56 +188,119 @@ def logout():
         url_for("login")
     )
 
+def validate_date(date_string):
+
+    try:
+        datetime.strptime(date_string, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
+
+
 def get_total_time(day, username):
     user = User.query.filter_by(username=username).first()
 
-    total_time = db.session.query(
-        func.sum(func.extract('epoch', PlayerStats.logout_datetime - PlayerStats.login_datetime))
-    ).join(User).filter(
-        func.date(PlayerStats.login_datetime) == day,
-        PlayerStats.logout_datetime.isnot(None),
-        User.id == user.id
-    ).scalar()
+    total_time = (
+        db.session.query(
+            func.sum(
+                func.extract(
+                    "epoch", PlayerStats.logout_datetime - PlayerStats.login_datetime
+                )
+            )
+        )
+        .join(User)
+        .filter(
+            func.date(PlayerStats.login_datetime) == day,
+            PlayerStats.logout_datetime.isnot(None),
+            User.id == user.id,
+        )
+        .scalar()
+    )
 
-    # Convert total_time from seconds to a more suitable format (e.g., HH:MM:SS)
     hours = int(total_time // 3600) if total_time else 0
     minutes = int((total_time % 3600) // 60) if total_time else 0
     seconds = int(total_time % 60) if total_time else 0
 
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
-@app.route("/player_stats", methods=['GET', 'POST'])
+
+@app.route("/player_stats", methods=["GET", "POST"])
 def player_stats():
-    date_object = date.today()
-    selected_date = request.form.get('selected_date')
-    if selected_date:
-        date_object = datetime.strptime(selected_date, '%Y-%m-%d')
-    username = current_user.username
+    username = session.get("username")
     user = User.query.filter_by(username=username).first()
+    login_datetime = session.get("login_datetime")
+    login_date_for_user = PlayerStats.query.filter_by(
+        user_id=user.id, login_datetime=login_datetime
+    ).first()
+    login_date_for_user.logout_datetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    login_date_for_user.wins = session.get("wins")
+    login_date_for_user.loses = session.get("loses")
+    login_date_for_user.ties = session.get("ties")
+    login_date_for_user.credits = session.get("credits")
+    db.session.commit()
+    date_object = date.today()
+    selected_date = request.form.get("selected_date")
+    if selected_date:
+        if validate_date(selected_date):
+            date_object = selected_date
+        else:
+            return """
+        <script>
+            alert('Invalid date format, please next time provide a valid date (YYYY-MM-DD)');
+            window.location.href = "{}";
+        </script>
+        """.format(
+            url_for("profile_page")
+        )
+
+
     total_played_time = get_total_time(date_object, username)
-    total = PlayerStats.query.filter(PlayerStats.user_id == user.id).all()
-    user_wins_today = db.session.query(func.sum(PlayerStats.wins)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
-    user_loses_today = db.session.query(func.sum(PlayerStats.loses)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
-    user_ties_today = db.session.query(func.sum(PlayerStats.ties)).filter(func.date(PlayerStats.login_datetime) == date_object, PlayerStats.user_id == user.id).scalar()
-    return render_template("player_stats.html", user_wins_today=user_wins_today, user_loses_today=user_loses_today, user_ties_today=user_ties_today, total_played_time=total_played_time, total=total)
+    user_wins_today = (
+        db.session.query(func.sum(PlayerStats.wins))
+        .filter(
+            func.date(PlayerStats.login_datetime) == date_object,
+            PlayerStats.user_id == user.id,
+        )
+        .scalar()
+    )
+    user_loses_today = (
+        db.session.query(func.sum(PlayerStats.loses))
+        .filter(
+            func.date(PlayerStats.login_datetime) == date_object,
+            PlayerStats.user_id == user.id,
+        )
+        .scalar()
+    )
+    user_ties_today = (
+        db.session.query(func.sum(PlayerStats.ties))
+        .filter(
+            func.date(PlayerStats.login_datetime) == date_object,
+            PlayerStats.user_id == user.id,
+        )
+        .scalar()
+    )
+    return render_template(
+        "player_stats.html",
+        user_wins_today=user_wins_today,
+        user_loses_today=user_loses_today,
+        user_ties_today=user_ties_today,
+        total_played_time=total_played_time,
+        selected_date=date_object,
+        username=username,
+    )
+
 
 def custom_login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Check if there are users in the database
         if User.query.count() == 0:
-            # If no users found, allow access to the route
             return f(*args, **kwargs)
-        
-        # If there are users, check if the user is authenticated
         if not current_user.is_authenticated:
-            # Redirect to the login page
-            return redirect(url_for('login'))
-
-        # User is authenticated, allow access to the route
+            return redirect(url_for("login"))
         return f(*args, **kwargs)
 
     return decorated_function
+
 
 @app.route("/profile")
 @custom_login_required
@@ -245,7 +323,7 @@ def profile_page():
 
 @app.route("/game", methods=["GET", "POST"])
 def play_game():
-    session['less_than_three_credits_and_game_is_over'] = False
+    session["less_than_three_credits_and_game_is_over"] = False
     game = TicTacToe([HumanPlayer(), AIPlayer(ai_algo)])
     game_cookie = session.get("game_board")
     if game_cookie:
@@ -279,8 +357,8 @@ def play_game():
             session["credits"] += 4
         game.board = [0 for i in range(9)]
         session["check_if_game_is_on"] = False
-        if session['credits'] < 3:
-            session['less_than_three_credits_and_game_is_over'] = True
+        if session["credits"] < 3:
+            session["less_than_three_credits_and_game_is_over"] = True
     else:
         game_msg = "play move"
     game_is_on = session.get("check_if_game_is_on")
