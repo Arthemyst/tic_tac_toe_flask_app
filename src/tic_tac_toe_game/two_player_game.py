@@ -15,32 +15,17 @@ class TwoPlayerGame(ABC):
     def is_over(self):
         pass
 
-    def play(self, nmoves=1000, verbose=True):
-        history = []
+    def play(self, nmoves=1000, verbose=True) -> None:
 
-        if verbose:
-            self.show()
 
         for self.nmove in range(1, nmoves + 1):
             if self.is_over():
                 break
 
             move = self.player.ask_move(self)
-            history.append((deepcopy(self), move))
             self.make_move(move)
 
-            if verbose:
-                print(
-                    "\nMove #%d: player %d plays %s :"
-                    % (self.nmove, self.current_player, str(move))
-                )
-                self.show()
-
             self.switch_player()
-
-        history.append(deepcopy(self))
-
-        return history
 
     @property
     def opponent_index(self):

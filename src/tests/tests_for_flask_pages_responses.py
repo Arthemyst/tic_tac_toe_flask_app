@@ -1,7 +1,7 @@
 import pytest
+from app import app
 from flask import session
 from flask_login import current_user
-from app import app
 
 
 @pytest.fixture
