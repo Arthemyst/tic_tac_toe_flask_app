@@ -5,10 +5,12 @@ Application for playing tic tac toe game. Player plays with computer (ai based o
 ## Images from website
 
 Home page before logging
+
 ![image](https://github.com/Arthemyst/flask_app/assets/59807704/252bf596-5045-4177-8a5a-4efe0c08b4ad)
 
 Login page
 
+![image](https://github.com/Arthemyst/flask_app/assets/59807704/22b9b20c-39d6-49bc-a75c-fb3f5a7bc328)
 
 
 ## Setup
