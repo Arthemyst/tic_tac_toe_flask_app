@@ -21,7 +21,9 @@ def negamax_algorithm(game, depth, original_depth, scoring, alpha=+inf, beta=-in
         game.make_move(move)
         game.switch_player()
 
-        move_alpha = -negamax_algorithm(game, depth - 1, original_depth, scoring, -beta, -alpha)
+        move_alpha = -negamax_algorithm(
+            game, depth - 1, original_depth, scoring, -beta, -alpha
+        )
 
         if best_value < move_alpha:
             best_value = move_alpha
@@ -32,7 +34,6 @@ def negamax_algorithm(game, depth, original_depth, scoring, alpha=+inf, beta=-in
                 state.ai_move = move
             if alpha >= beta:
                 break
-
 
     return best_value
 
@@ -45,9 +46,7 @@ class Negamax:
 
     def __call__(self, game):
 
-        scoring = (
-            self.scoring if self.scoring else (lambda g: g.scoring())
-        )
+        scoring = self.scoring if self.scoring else (lambda g: g.scoring())
 
         self.alpha = negamax_algorithm(
             game,
