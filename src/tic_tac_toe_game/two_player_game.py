@@ -15,18 +15,6 @@ class TwoPlayerGame(ABC):
     def is_over(self):
         pass
 
-    def play(self, nmoves=1000, verbose=True) -> None:
-
-
-        for self.nmove in range(1, nmoves + 1):
-            if self.is_over():
-                break
-
-            move = self.player.ask_move(self)
-            self.make_move(move)
-
-            self.switch_player()
-
     @property
     def opponent_index(self):
         return 2 if (self.current_player == 1) else 1

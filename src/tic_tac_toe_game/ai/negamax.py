@@ -1,7 +1,7 @@
 inf = float("infinity")
 
 
-def negamax(game, depth, original_depth, scoring, alpha=+inf, beta=-inf):
+def negamax_algorithm(game, depth, original_depth, scoring, alpha=+inf, beta=-inf):
 
     if (depth == 0) or game.is_over():
         return scoring(game) * (1 + 0.001 * depth)
@@ -21,7 +21,7 @@ def negamax(game, depth, original_depth, scoring, alpha=+inf, beta=-inf):
         game.make_move(move)
         game.switch_player()
 
-        move_alpha = -negamax(game, depth - 1, original_depth, scoring, -beta, -alpha)
+        move_alpha = -negamax_algorithm(game, depth - 1, original_depth, scoring, -beta, -alpha)
 
         if best_value < move_alpha:
             best_value = move_alpha
@@ -49,7 +49,7 @@ class Negamax:
             self.scoring if self.scoring else (lambda g: g.scoring())
         )
 
-        self.alpha = negamax(
+        self.alpha = negamax_algorithm(
             game,
             self.depth,
             self.depth,

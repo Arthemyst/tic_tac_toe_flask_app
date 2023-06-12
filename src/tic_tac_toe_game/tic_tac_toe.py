@@ -28,17 +28,6 @@ class TicTacToe(TwoPlayerGame):
             or self.lose(who=self.current_player)
         )
 
-    def show(self) -> str:
-        print(
-            "\n"
-            + "\n".join(
-                [
-                    " ".join([[".", "O", "X"][self.board[3 * j + i]] for i in range(3)])
-                    for j in range(3)
-                ]
-            )
-        )
-
     def spot_string(self, i, j) -> str:
         return ["_", "O", "X"][self.board[3 * j + i]]
 
